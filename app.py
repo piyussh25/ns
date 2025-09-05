@@ -1,4 +1,3 @@
-
 from flask import Flask, request, jsonify, render_template
 from predict_hours import predict_hours
 from bulk_predict import bulk_predict
@@ -26,11 +25,19 @@ def bulk_predict_route():
     data = request.get_json()
     event_names = data['event_names']
     test_events = [{'event': name} for name in event_names]
-    predictions, total_hours = bulk_predict(test_events, historical_events)
-    return jsonify({'predictions': predictions, 'total_hours': total_hours})
+    
+    # Call bulk_predict, but we'll modify the output to exclude similar_event
+    predictions_with_similar, total_hours = bulk_predict(test_events, historical_events)
+    
+    # Create a new list of predictions without the 'similar_event' key
+    predictions_for_frontend = []
+    for p in predictions_with_similar:
+        predictions_for_frontend.append({
+            'event': p['event'],
+            'predicted_hours': p['predicted_hours']
+        })
+        
+    return jsonify({'predictions': predictions_for_frontend, 'total_hours': total_hours})
 
 if __name__ == '__main__':
-    app.run(debug=True) # Keep debug for local development
-
-# For production, Gunicorn will run the app
-
+    app.run(debug=True)

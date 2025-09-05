@@ -1,0 +1,13 @@
+{
+  "events": [
+    { "name": "Ex Army Officer webinar- Rashtra pratham", "working_hours": 2 },
+    { "name": "Cyber Security Webinar- ABCSS", "working_hours": 3 },
+    { "name": "NDRF-Disaster Management seminar", "working_hours": 5 },
+    { "name": "Digital health awareness webinar- TRIGUNA Foundation", "working_hours": 1 },
+    { "name": "Unwind Connect & Cure - Stress management webinar", "working_hours": 1 },
+    { "name": "Awareness about drug abus", "working_hours": 3 },
+    { "name": "Induction-cum-Exhibition program for implementing new criminal laws", "working_hours": 7 },
+    { "name": "Investor Awareness Program - Webinar", "working_hours": 1 },
+    { "name": "WYF Orientation", "working_hours": 10 }
+  ]
+}

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NSS Working Hours Predictor</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f7f6;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+        .main-container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+            padding: 30px;
+            width: 100%;
+            max-width: 800px; /* Adjusted max-width for single section */
+            display: flex;
+            flex-direction: column; /* Changed to column for single section */
+            gap: 30px;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+            text-align: center;
+            width: 100%;
+            margin-bottom: 25px;
+        }
+        .instructions {
+            text-align: center;
+            margin-top: -15px; /* Adjust to bring it closer to the title */
+            margin-bottom: 25px;
+            color: #555;
+            font-size: 1.1em;
+        }
+        .instructions a {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .instructions a:hover {
+            text-decoration: underline;
+        }
+        .section {
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background-color: #fdfdfd;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        textarea {
+            width: calc(100% - 22px);
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 15px;
+        }
+        th, td {
+            border: 1px solid #e0e0e0;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #ecf0f1;
+            color: #333;
+            font-weight: bold;
+        }
+        tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tbody tr:hover {
+            background-color: #f0f8ff;
+        }
+        #totalHours {
+            font-weight: bold;
+            color: #27ae60;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="section bulk-predict">
+            <h1>NSS Working Hours Predictor (Bulk)</h1>
+            <p class="instructions">Please visit <a href="https://nss-attendance.vercel.app/user-login" target="_blank">nss-attendance.vercel.app/user-login</a>, log in, copy your events, and paste them here.</p>
+            <textarea id="eventList" rows="10" placeholder="Paste your event list here..."></textarea>
+            <button id="bulkPredictBtn">Bulk Predict</button>
+            <div id="bulkResult">
+                <h2>Prediction Report</h2>
+                <table id="predictionTable">
+                    <thead>
+                        <tr>
+                            <th>Event</th>
+                            <th>Predicted Hours</th>
+                            <th>Similar Event</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+                <h3>Total Predicted Hours: <span id="totalHours"></span></h3>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('bulkPredictBtn').addEventListener('click', function() {
+            const rawText = document.getElementById('eventList').value;
+            const lines = rawText.split('\n');
+            const eventNames = [];
+
+            // Regex to identify lines that are likely event names
+            // It looks for lines that don't start with a date (DD/MM/YYYY) or 'Present'
+            const eventNameRegex = /^(?!\d{2}\/\d{2}\/\d{4}|Present$|\s*$)/;
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (eventNameRegex.test(line)) {
+                    eventNames.push(line);
+                }
+            }
+
+            if (eventNames.length > 0) {
+                fetch('/bulk_predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ event_names: eventNames })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.getElementById('predictionTable').getElementsByTagName('tbody')[0];
+                    tableBody.innerHTML = ''; // Clear previous results
+                    data.predictions.forEach(prediction => {
+                        const row = tableBody.insertRow();
+                        row.insertCell(0).innerText = prediction.event;
+                        row.insertCell(1).innerText = prediction.predicted_hours;
+                        row.insertCell(2).innerText = prediction.similar_event;
+                    });
+                    document.getElementById('totalHours').innerText = data.total_hours;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
